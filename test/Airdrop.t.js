@@ -1,12 +1,12 @@
 const {
   time,
   loadFixture,
-  helpers,
 } = require("@nomicfoundation/hardhat-toolbox/network-helpers");
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 const { generateProof } = require("../script/createMerkleProof");
+const helpers = require("@nomicfoundation/hardhat-network-helpers");
 
 const ONE_WEEK = 7 * 24 * 3600;
 // Define the expected total supply (1 million tokens with 18 decimals)
@@ -141,42 +141,29 @@ describe("Airdrop", function () {
         ).to.be.revertedWithCustomError(merkleDropAddress, "ClaimingEnded");
       });
 
-      it.only("Should revert if user has claimed already", async function () {
+      it("Should revert if user has claimed already", async function () {
         const { token, other, merkleDropAddress, merkleRoot } =
           await loadFixture(delpoymerkleDropFixture);
 
         // Transfer the tokens to the MerkleDrop contract to fund the airdrop
         await token.transfer(merkleDropAddress, tokenTotalSupply);
-        const address = "0xa53cf9e377334e7da7550e644b815cc5cb74af23";
-        // await hre.network.provider.request({
-        //   method: "hardhat_impersonateAccount",
-        //   params: ["0xa53cf9e377334e7da7550e644b815cc5cb74af23"],
-        // });
-        // const provider = ethers.getDefaultProvider("http://localhost:8545");
-        // const signer = await provider.getSigner(
-        //   "0xa53cf9e377334e7da7550e644b815cc5cb74af23"
-        // );
-        let provider;
-        if (network.config.url !== undefined) {
-          provider = new ethers.providers.JsonRpcProvider(network.config.url);
-        } else {
-          // if network.config.url is undefined, then this is the hardhat network
-          provider = hre.ethers.provider;
-        }
+        const address = "0x68a6bbbf32083732eabcd1fc48a5a406ae20082d";
 
-        await provider.send("hardhat_impersonateAccount", [address]);
-        const signer = provider.getSigner(address);
-        // await helpers.impersonateAccount(address);
-        // const impersonatedSigner = await ethers.getSigner(address);
+        await helpers.impersonateAccount(address);
+        const impersonatedSigner = await ethers.getSigner(address);
 
         // generating Merkle proof for  0xa53cf9e377334e7da7550e644b815cc5cb74af23
 
         const { value, proof } = generateProof(address);
-        const amount = ethers.parseUnits("10", 18);
+        const amount = ethers.parseUnits("50", 18);
 
-        await merkleDropAddress.connect(signer).claimAirDrop(proof, 0n, amount);
+        await merkleDropAddress
+          .connect(impersonatedSigner)
+          .claimAirDrop(proof, 4n, amount);
         await expect(
-          merkleDropAddress.connect(signer).claimAirDrop(proof, 0n, amount)
+          merkleDropAddress
+            .connect(impersonatedSigner)
+            .claimAirDrop(proof, 4n, amount)
         ).to.be.revertedWithCustomError(merkleDropAddress, "AlreadyClaimed");
 
         // await hre.network.provider.request({
@@ -214,13 +201,19 @@ describe("Airdrop", function () {
 
         // generating Merkle proof for  0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC
         const address = "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC";
+        await helpers.impersonateAccount(address);
+        const impersonatedSigner = await ethers.getSigner(address);
         const { value, proof } = generateProof(address);
         const amount = ethers.parseUnits("20", 18);
         // Claim the airdrop using the proof and amount
-        await merkleDropAddress.connect(acct1).claimAirDrop(proof, 1n, amount);
+        await merkleDropAddress
+          .connect(impersonatedSigner)
+          .claimAirDrop(proof, 1n, amount);
 
         // Assert that the account has received the correct amount of tokens
-        await expect(await token.balanceOf(acct1.address)).to.equal(amount);
+        await expect(
+          await token.balanceOf(impersonatedSigner.address)
+        ).to.equal(amount);
       });
     });
     describe("Events", function () {
@@ -233,11 +226,15 @@ describe("Airdrop", function () {
 
         // generating Merkle proof for  0x47ad7b5f38d184491b28b716718e4987f70c9820
         const address = "0x47ad7b5f38d184491b28b716718e4987f70c9820";
+        await helpers.impersonateAccount(address);
+        const impersonatedSigner = await ethers.getSigner(address);
         const { value, proof } = generateProof(address);
         const amount = ethers.parseUnits("80", 18);
 
         await expect(
-          await merkleDropAddress.connect(other).claimAirDrop(proof, 7n, amount)
+          await merkleDropAddress
+            .connect(impersonatedSigner)
+            .claimAirDrop(proof, 7n, amount)
         )
           .to.emit(merkleDropAddress, "claimedAirDrop")
           .withArgs(address, amount); // We accept any value as `when` arg

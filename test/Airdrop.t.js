@@ -132,12 +132,18 @@ describe("Airdrop", function () {
 
         // generating Merkle proof for  0xa53cf9e377334e7da7550e644b815cc5cb74af23
         const address = "0xa53cf9e377334e7da7550e644b815cc5cb74af23";
+        await helpers.impersonateAccount(address);
+        const impersonatedSigner = await ethers.getSigner(address);
+        const ethAmount = ethers.parseEther("10"); // 10 ETH  for gas fees
+        await helpers.setBalance(address, ethAmount);
         const { value, proof } = generateProof(address);
         const amount = ethers.parseUnits("10", 18);
 
         await time.increaseTo((await time.latest()) + 4 * ONE_WEEK);
         await expect(
-          merkleDropAddress.connect(acct1).claimAirDrop(proof, 0n, amount)
+          merkleDropAddress
+            .connect(impersonatedSigner)
+            .claimAirDrop(proof, 0n, amount)
         ).to.be.revertedWithCustomError(merkleDropAddress, "ClaimingEnded");
       });
 
@@ -151,8 +157,10 @@ describe("Airdrop", function () {
 
         await helpers.impersonateAccount(address);
         const impersonatedSigner = await ethers.getSigner(address);
+        const ethAmount = ethers.parseEther("10"); // 10 ETH  for gas fees
+        await helpers.setBalance(address, ethAmount);
 
-        // generating Merkle proof for  0xa53cf9e377334e7da7550e644b815cc5cb74af23
+        // generating Merkle proof for  0x68a6bbbf32083732eabcd1fc48a5a406ae20082d
 
         const { value, proof } = generateProof(address);
         const amount = ethers.parseUnits("50", 18);
@@ -199,10 +207,12 @@ describe("Airdrop", function () {
         // Transfer the tokens to the MerkleDrop contract to fund the airdrop
         await token.transfer(merkleDropAddress, tokenTotalSupply);
 
-        // generating Merkle proof for  0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC
-        const address = "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC";
+        // generating Merkle proof for  0xd5cbc23a467ad01d7b1261504ffeeee3d6764531
+        const address = "0xd5cbc23a467ad01d7b1261504ffeeee3d6764531";
         await helpers.impersonateAccount(address);
         const impersonatedSigner = await ethers.getSigner(address);
+        const ethAmount = ethers.parseEther("10"); // 10 ETH  for gas fees
+        await helpers.setBalance(address, ethAmount);
         const { value, proof } = generateProof(address);
         const amount = ethers.parseUnits("20", 18);
         // Claim the airdrop using the proof and amount
@@ -225,8 +235,10 @@ describe("Airdrop", function () {
         await token.transfer(merkleDropAddress, tokenTotalSupply);
 
         // generating Merkle proof for  0x47ad7b5f38d184491b28b716718e4987f70c9820
-        const address = "0x47ad7b5f38d184491b28b716718e4987f70c9820";
+        const address = "0x47ad7b5F38D184491b28B716718E4987f70C9820";
         await helpers.impersonateAccount(address);
+        const ethAmount = ethers.parseEther("10"); // 10 ETH  for gas fees
+        await helpers.setBalance(address, ethAmount);
         const impersonatedSigner = await ethers.getSigner(address);
         const { value, proof } = generateProof(address);
         const amount = ethers.parseUnits("80", 18);
